@@ -1,0 +1,9 @@
+// backend/jest.config.json
+
+{
+  "testEnvironment": "node",
+  "globalSetup": "./src/test/globalSetup.js",
+  "globalTeardown": "./src/test/globalTeardown.js",
+  "setupFilesAfterFramework": ["./src/test/setupFileAfterEnv.js"],
+  "rootDir": "."
+}
