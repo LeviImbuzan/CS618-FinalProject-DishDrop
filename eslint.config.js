@@ -34,7 +34,10 @@ export default defineConfig([
     files: ['backend/**/*.js'],
     extends: [js.configs.recommended, prettier],
     languageOptions: {
-      globals: globals.node,
+      globals: {
+        ...globals.node,
+        ...globals.jest,
+      },
     },
   },
 ]);
