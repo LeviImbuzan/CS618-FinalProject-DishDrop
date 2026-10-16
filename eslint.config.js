@@ -29,6 +29,10 @@ export default defineConfig([
         version: 'detect',
       },
     },
+    rules: {
+      // React 19 removed runtime propTypes checking, so this rule no longer adds value
+      'react/prop-types': 'off',
+    },
   },
   {
     files: ['backend/**/*.js'],
