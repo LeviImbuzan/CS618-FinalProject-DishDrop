@@ -25,7 +25,8 @@
     "mongodb": "^7.6.0",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
-    "react-router-dom": "^7.18.5"
+    "react-router-dom": "^7.18.5",
+    "victory": "^38.0.1"
   },
   "devDependencies": {
     "@commitlint/cli": "^21.2.2",

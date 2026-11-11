@@ -142,3 +142,29 @@ article h3 {
 a {
   color: var(--accent);
 }
+
+.stat-row {
+  display: flex;
+  gap: 32px;
+  margin-bottom: 8px;
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+}
+
+.stat-value {
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.stat-label {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+article h2 {
+  margin: 0 0 8px;
+}

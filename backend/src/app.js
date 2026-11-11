@@ -5,6 +5,7 @@ import bodyParser from 'body-parser';
 import cors from 'cors';
 import { postRoutes } from './routes/post.js';
 import { userRoutes } from './routes/users.js';
+import { eventRoutes } from './routes/events.js';
 
 const app = express();
 
@@ -19,6 +20,7 @@ app.get('/', (req, res) => {
 
 postRoutes(app);
 userRoutes(app);
+eventRoutes(app);
 
 // express-jwt reports a missing or bad token as an UnauthorizedError;
 // answer with JSON instead of Express's default HTML error page

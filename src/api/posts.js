@@ -8,6 +8,12 @@ export async function getPosts() {
   return await response.json();
 }
 
+export async function getPostById(postId) {
+  const response = await fetch(`${baseUrl}/posts/${postId}`);
+  if (!response.ok) throw await readError(response, 'Failed to load post');
+  return await response.json();
+}
+
 // The author is not sent: the backend reads it from the token
 export async function createPost({ title, content, token }) {
   const response = await fetch(`${baseUrl}/posts`, {

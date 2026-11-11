@@ -1,9 +1,24 @@
 // src/components/Post.jsx
 // author arrives populated from the backend as { _id, username }
-export default function Post({ title, author, content, createdAt }) {
+import { Link } from 'react-router-dom';
+
+export default function Post({
+  _id,
+  title,
+  author,
+  content,
+  createdAt,
+  fullPost = false,
+}) {
   return (
     <article className="card">
-      <h3>{title}</h3>
+      {fullPost ? (
+        <h2>{title}</h2>
+      ) : (
+        <h3>
+          <Link to={`/posts/${_id}`}>{title}</Link>
+        </h3>
+      )}
       {content && <p>{content}</p>}
       <p className="meta">
         by {author?.username ?? 'unknown'}

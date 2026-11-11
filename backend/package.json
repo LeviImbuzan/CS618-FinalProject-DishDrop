@@ -6,7 +6,9 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "node --experimental-vm-modules node_modules/.bin/jest"
+    "test": "node --experimental-vm-modules node_modules/.bin/jest",
+    "seed:views": "node src/seed-views.js",
+    "clear:views": "node src/clear-views.js"
   },
   "keywords": [],
   "author": "",
