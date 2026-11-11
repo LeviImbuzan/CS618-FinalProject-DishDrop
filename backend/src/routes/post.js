@@ -1,5 +1,7 @@
 // backend/src/routes/post.js
 
+import mongoose from 'mongoose';
+import { requireAuth } from '../middleware/jwt.js';
 import {
   createPost,
   getAllPosts,
@@ -10,8 +12,11 @@ import {
   deletePost,
 } from '../services/post.js';
 
+// A malformed id would make Mongoose throw a CastError, so reject it as a 404
+const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
+
 export function postRoutes(app) {
-  // GET /api/v1/posts — all posts, with optional ?author= or ?tag= filtering
+  // GET /api/v1/posts — public, with optional ?author= or ?tag= filtering
   app.get('/api/v1/posts', async (req, res) => {
     try {
       const { author, tag } = req.query;
@@ -29,9 +34,12 @@ export function postRoutes(app) {
     }
   });
 
-  // GET /api/v1/posts/:id — single post
+  // GET /api/v1/posts/:id — public, single post
   app.get('/api/v1/posts/:id', async (req, res) => {
     try {
+      if (!isValidId(req.params.id)) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
       const post = await getPostById(req.params.id);
       if (!post) return res.status(404).json({ error: 'Post not found' });
       res.json(post);
@@ -40,21 +48,30 @@ export function postRoutes(app) {
     }
   });
 
-  // POST /api/v1/posts — create
-  app.post('/api/v1/posts', async (req, res) => {
+  // POST /api/v1/posts — logged-in users only; author comes from the token
+  app.post('/api/v1/posts', requireAuth, async (req, res) => {
     try {
-      const { title, author, content, tags } = req.body;
-      const post = await createPost(title, author, content, tags);
+      const { title, content, tags } = req.body;
+      const post = await createPost(req.auth.userId, { title, content, tags });
       res.status(201).json(post);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.name === 'ValidationError' ? 400 : 500;
+      res.status(status).json({ error: err.message });
     }
   });
 
-  // PATCH /api/v1/posts/:id — update
-  app.patch('/api/v1/posts/:id', async (req, res) => {
+  // PATCH /api/v1/posts/:id — only the post's author can update it
+  app.patch('/api/v1/posts/:id', requireAuth, async (req, res) => {
     try {
-      const updated = await updatePost(req.params.id, req.body);
+      if (!isValidId(req.params.id)) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      const { title, content, tags } = req.body;
+      const updated = await updatePost(req.auth.userId, req.params.id, {
+        title,
+        content,
+        tags,
+      });
       if (!updated) return res.status(404).json({ error: 'Post not found' });
       res.json(updated);
     } catch (err) {
@@ -62,10 +79,16 @@ export function postRoutes(app) {
     }
   });
 
-  // DELETE /api/v1/posts/:id — delete
-  app.delete('/api/v1/posts/:id', async (req, res) => {
+  // DELETE /api/v1/posts/:id — only the post's author can delete it
+  app.delete('/api/v1/posts/:id', requireAuth, async (req, res) => {
     try {
-      await deletePost(req.params.id);
+      if (!isValidId(req.params.id)) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
+      const result = await deletePost(req.auth.userId, req.params.id);
+      if (result.deletedCount === 0) {
+        return res.status(404).json({ error: 'Post not found' });
+      }
       res.status(204).send();
     } catch (err) {
       res.status(500).json({ error: err.message });

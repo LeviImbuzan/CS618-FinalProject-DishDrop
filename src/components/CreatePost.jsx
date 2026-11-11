@@ -1,13 +1,16 @@
 // src/components/CreatePost.jsx
-// Controlled form that saves a post, then invalidates the cached list so it refetches.
+// Controlled form that saves a post as the logged-in user, then invalidates
+// the cached list so it refetches.
 import { useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { Link } from 'react-router-dom';
 import { createPost } from '../api/posts.js';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function CreatePost() {
   const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
   const [content, setContent] = useState('');
+  const { token } = useAuth();
 
   const queryClient = useQueryClient();
 
@@ -16,14 +19,22 @@ export default function CreatePost() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['posts'] });
       setTitle('');
-      setAuthor('');
       setContent('');
     },
   });
 
+  if (!token) {
+    return (
+      <p className="card">
+        <Link to="/login">Log in</Link> or <Link to="/signup">sign up</Link> to
+        share a dish.
+      </p>
+    );
+  }
+
   function handleSubmit(e) {
     e.preventDefault();
-    createPostMutation.mutate({ title, author, content });
+    createPostMutation.mutate({ title, content, token });
   }
 
   return (
@@ -36,14 +47,6 @@ export default function CreatePost() {
         type="text"
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-      />
-
-      <label htmlFor="create-author">Author</label>
-      <input
-        id="create-author"
-        type="text"
-        value={author}
-        onChange={(e) => setAuthor(e.target.value)}
       />
 
       <label htmlFor="create-content">Content</label>

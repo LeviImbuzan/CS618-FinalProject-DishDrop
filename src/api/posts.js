@@ -1,24 +1,23 @@
 // src/api/posts.js
 // All HTTP calls for posts live here, so components never build URLs themselves.
-
-// In development, Vite proxies /api to the Express server (see vite.config.js).
-// VITE_BACKEND_URL can override this for other environments.
-const baseUrl = import.meta.env.VITE_BACKEND_URL ?? '/api/v1';
+import { baseUrl, readError } from './config.js';
 
 export async function getPosts() {
   const response = await fetch(`${baseUrl}/posts`);
-  if (!response.ok)
-    throw new Error(`Failed to load posts (${response.status})`);
+  if (!response.ok) throw await readError(response, 'Failed to load posts');
   return await response.json();
 }
 
-export async function createPost({ title, author, content }) {
+// The author is not sent: the backend reads it from the token
+export async function createPost({ title, content, token }) {
   const response = await fetch(`${baseUrl}/posts`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, author, content }),
+    headers: {
+      'Content-Type': 'application/json',
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({ title, content }),
   });
-  if (!response.ok)
-    throw new Error(`Failed to create post (${response.status})`);
+  if (!response.ok) throw await readError(response, 'Failed to create post');
   return await response.json();
 }

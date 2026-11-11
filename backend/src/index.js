@@ -4,11 +4,17 @@ import 'dotenv/config';
 import app from './app.js';
 import { initDatabase } from './database/init.js';
 
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
+
+// Fail at startup rather than on the first login attempt
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET is not set. Add it to backend/.env');
+  process.exit(1);
+}
 
 await initDatabase();
 console.log('Successfully connected to MongoDB');
 
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });

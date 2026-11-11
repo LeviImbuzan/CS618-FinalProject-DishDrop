@@ -111,3 +111,34 @@ article h3 {
 .error {
   color: #b91c1c;
 }
+
+.site-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.brand {
+  color: var(--accent);
+  font-size: 2.5rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.site-header nav {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-top: 12px;
+}
+
+.site-header nav button {
+  margin-top: 0;
+  padding: 6px 14px;
+}
+
+a {
+  color: var(--accent);
+}

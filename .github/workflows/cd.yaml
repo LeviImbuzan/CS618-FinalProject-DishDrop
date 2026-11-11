@@ -1,0 +1,91 @@
+# .github/workflows/cd.yaml
+# Continuous deployment: after CI passes on main, build both images,
+# push them to Docker Hub, and deploy them to Google Cloud Run.
+
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  # Lets you rerun a deploy by hand from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    # Deploy only main: a manual run from main, or a passing CI run that was
+    # triggered by a push to main in this repository (never a pull request,
+    # which could come from a fork)
+    if: >-
+      (github.event_name == 'workflow_dispatch' &&
+       github.ref == 'refs/heads/main') ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.event == 'push' &&
+       github.event.workflow_run.head_repository.full_name == github.repository)
+    runs-on: ubuntu-latest
+    env:
+      BACKEND_IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/dishdrop-backend
+      FRONTEND_IMAGE: docker.io/${{ secrets.DOCKERHUB_USERNAME }}/dishdrop-frontend
+      # Tag images with the commit so every deploy is traceable
+      TAG: ${{ github.event.workflow_run.head_sha || github.sha }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ env.TAG }}
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up Google Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Build and push backend image
+        run: |
+          docker build -t "$BACKEND_IMAGE:$TAG" -t "$BACKEND_IMAGE:latest" ./backend
+          docker push --all-tags "$BACKEND_IMAGE"
+
+      - name: Deploy backend to Cloud Run
+        id: deploy-backend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: dishdrop-backend
+          image: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}
+          region: ${{ secrets.GCP_REGION }}
+          flags: --allow-unauthenticated
+          env_vars: |-
+            DATABASE_URL=${{ secrets.DATABASE_URL }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+
+      # The frontend needs the backend's URL baked in at build time, which is
+      # why both services deploy from one workflow: the URL comes from the
+      # previous step's output
+      - name: Build and push frontend image
+        run: |
+          docker build \
+            --build-arg VITE_BACKEND_URL=${{ steps.deploy-backend.outputs.url }}/api/v1 \
+            -t "$FRONTEND_IMAGE:$TAG" -t "$FRONTEND_IMAGE:latest" .
+          docker push --all-tags "$FRONTEND_IMAGE"
+
+      - name: Deploy frontend to Cloud Run
+        id: deploy-frontend
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: dishdrop-frontend
+          image: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}
+          region: ${{ secrets.GCP_REGION }}
+          flags: --allow-unauthenticated --port=80
+
+      - name: Show live URLs
+        run: |
+          echo "Backend:  ${{ steps.deploy-backend.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Frontend: ${{ steps.deploy-frontend.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,6 @@
+node_modules
+.env
+src/__tests__
+src/test
+jest.config.json
+nodemon.json
