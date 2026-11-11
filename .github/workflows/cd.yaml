@@ -62,9 +62,21 @@ jobs:
       - name: Set up Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
 
+      # Cloud Run pulls through an Artifact Registry repository named
+      # "dockerhub" that proxies Docker Hub, since Google's shared Docker Hub
+      # mirror does not see freshly pushed tags. GCP_PROJECT comes from the
+      # authenticate step.
+      - name: Set deploy image paths
+        env:
+          GCP_REGION: ${{ secrets.GCP_REGION }}
+        run: |
+          proxy="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT}/dockerhub"
+          echo "BACKEND_DEPLOY_IMAGE=$proxy/${BACKEND_IMAGE#docker.io/}" >> "$GITHUB_ENV"
+          echo "FRONTEND_DEPLOY_IMAGE=$proxy/${FRONTEND_IMAGE#docker.io/}" >> "$GITHUB_ENV"
+
       - name: Build and push backend image
         run: |
-          docker build -t "$BACKEND_IMAGE:$TAG" -t "$BACKEND_IMAGE:latest" ./backend
+          docker build --provenance=false -t "$BACKEND_IMAGE:$TAG" -t "$BACKEND_IMAGE:latest" ./backend
           docker push --all-tags "$BACKEND_IMAGE"
 
       # --no-invoker-iam-check makes the service public without granting
@@ -74,7 +86,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dishdrop-backend
-          image: ${{ env.BACKEND_IMAGE }}:${{ env.TAG }}
+          image: ${{ env.BACKEND_DEPLOY_IMAGE }}:${{ env.TAG }}
           region: ${{ secrets.GCP_REGION }}
           flags: --no-invoker-iam-check
           env_vars: |-
@@ -86,7 +98,7 @@ jobs:
       # previous step's output
       - name: Build and push frontend image
         run: |
-          docker build \
+          docker build --provenance=false \
             --build-arg VITE_BACKEND_URL=${{ steps.deploy-backend.outputs.url }}/api/v1 \
             -t "$FRONTEND_IMAGE:$TAG" -t "$FRONTEND_IMAGE:latest" .
           docker push --all-tags "$FRONTEND_IMAGE"
@@ -96,7 +108,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: dishdrop-frontend
-          image: ${{ env.FRONTEND_IMAGE }}:${{ env.TAG }}
+          image: ${{ env.FRONTEND_DEPLOY_IMAGE }}:${{ env.TAG }}
           region: ${{ secrets.GCP_REGION }}
           flags: --no-invoker-iam-check --port=80
 
