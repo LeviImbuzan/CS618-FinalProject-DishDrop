@@ -2,9 +2,11 @@
 // The home page: the create form plus the live list of posts from the backend.
 import { useQuery } from '@tanstack/react-query';
 import { getPosts } from '../api/posts.js';
+import ChatRoom from '../components/ChatRoom.jsx';
 import CreatePost from '../components/CreatePost.jsx';
 import Header from '../components/Header.jsx';
 import PostList from '../components/PostList.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function Blog() {
   const postsQuery = useQuery({
@@ -13,10 +15,13 @@ export default function Blog() {
   });
 
   const posts = postsQuery.data ?? [];
+  const { token } = useAuth();
 
   return (
     <main className="page">
       <Header />
+
+      {token && <ChatRoom />}
 
       <CreatePost />
 

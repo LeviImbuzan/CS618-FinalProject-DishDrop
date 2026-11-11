@@ -168,3 +168,84 @@ a {
 article h2 {
   margin: 0 0 8px;
 }
+
+.chat-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+}
+
+.chat-header h2 {
+  margin: 0 0 12px;
+}
+
+.chat-status {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.chat-status.connected {
+  color: #15803d;
+}
+
+.chat-status.error {
+  color: #b91c1c;
+}
+
+.chat-list {
+  height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.chat-message {
+  max-width: 75%;
+  align-self: flex-start;
+}
+
+.chat-message.own {
+  align-self: flex-end;
+  text-align: right;
+}
+
+.chat-meta {
+  font-size: 0.75rem;
+  color: var(--muted);
+  margin-bottom: 2px;
+}
+
+.chat-bubble {
+  display: inline-block;
+  padding: 8px 12px;
+  border-radius: 12px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  text-align: left;
+  overflow-wrap: anywhere;
+}
+
+.chat-message.own .chat-bubble {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.chat-form {
+  display: flex;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.chat-form input {
+  flex: 1;
+}
+
+.chat-form button {
+  margin-top: 0;
+}

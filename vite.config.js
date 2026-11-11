@@ -9,6 +9,8 @@ export default defineConfig({
     // The browser only talks to one origin, so no public port or CORS setup is needed.
     proxy: {
       '/api': 'http://localhost:3000',
+      // Chat: Socket.io upgrades this path to a WebSocket
+      '/socket.io': { target: 'http://localhost:3000', ws: true },
     },
   },
 });
