@@ -3,10 +3,26 @@
 import { Post } from '../models/post.js';
 import { User } from '../models/user.js';
 
+// Drop blank lines from an ingredient list
+const cleanList = (list) =>
+  Array.isArray(list)
+    ? list.map((item) => String(item).trim()).filter(Boolean)
+    : list;
+
 // --- Create ---
 // The author always comes from the logged-in user, never from the request body
-export async function createPost(userId, { title, content, tags }) {
-  const post = new Post({ title, author: userId, content, tags });
+export async function createPost(
+  userId,
+  { title, ingredients, imageUrl, content, tags }
+) {
+  const post = new Post({
+    title,
+    author: userId,
+    ingredients: cleanList(ingredients),
+    imageUrl: imageUrl || undefined,
+    content,
+    tags,
+  });
   return await post.save();
 }
 
@@ -39,11 +55,25 @@ export async function getPostById(id) {
 
 // --- Update ---
 // Matching on both _id and author means users can only change their own posts
-export async function updatePost(userId, postId, { title, content, tags }) {
+export async function updatePost(
+  userId,
+  postId,
+  { title, ingredients, imageUrl, content, tags }
+) {
   return await Post.findOneAndUpdate(
     { _id: postId, author: userId },
-    { $set: { title, content, tags } },
-    { returnDocument: 'after' } // Mongoose drops undefined fields, so omitted ones stay unchanged
+    {
+      $set: {
+        title,
+        ingredients: cleanList(ingredients),
+        imageUrl,
+        content,
+        tags,
+      },
+    },
+    // Mongoose drops undefined fields, so omitted ones stay unchanged;
+    // runValidators applies the schema rules to updates too
+    { returnDocument: 'after', runValidators: true }
   );
 }
 

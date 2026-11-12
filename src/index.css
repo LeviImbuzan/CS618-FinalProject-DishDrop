@@ -249,3 +249,94 @@ article h2 {
 .chat-form button {
   margin-top: 0;
 }
+
+.recipe-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.recipe-card {
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.recipe-card-image {
+  display: block;
+}
+
+.recipe-card-body {
+  padding: 12px 14px;
+}
+
+.recipe-card-body h3 {
+  margin: 0 0 4px;
+  font-size: 1.05rem;
+}
+
+.recipe-card-body .meta {
+  margin: 4px 0 0;
+}
+
+.recipe-image {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  background: var(--bg);
+}
+
+.recipe-image.placeholder {
+  display: grid;
+  place-items: center;
+  font-size: 2.5rem;
+  color: var(--muted);
+}
+
+.recipe-image.preview {
+  max-width: 220px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+}
+
+.recipe-image.hero {
+  border-radius: 8px;
+  margin-bottom: 16px;
+  aspect-ratio: 16 / 9;
+}
+
+.recipe-full .ingredients {
+  padding-left: 20px;
+  line-height: 1.7;
+}
+
+.recipe-full .instructions {
+  white-space: pre-wrap;
+}
+
+.form-actions,
+.owner-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+button.secondary {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border);
+}
+
+button.danger {
+  background: #b91c1c;
+}
+
+.owner-actions button,
+.form-actions button {
+  margin-top: 0;
+}

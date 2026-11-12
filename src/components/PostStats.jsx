@@ -11,7 +11,7 @@ const localDay = (date) => date.toLocaleDateString('en-CA');
 
 // The backend only returns days that had views; fill the gaps with zeros
 // so the chart shows a continuous run of days ending today
-function fillDays(dailyViews) {
+function fillDays(dailyViews = []) {
   const counts = new Map(dailyViews.map((d) => [d.day, d.views]));
   const today = new Date();
   const days = [];

@@ -12,7 +12,12 @@ export function AuthContextProvider({ children }) {
   const value = useMemo(() => {
     // The payload is readable without the secret; only the backend can verify it
     const user = token ? jwtDecode(token) : null;
-    return { token, setToken, username: user?.username ?? null };
+    return {
+      token,
+      setToken,
+      username: user?.username ?? null,
+      userId: user?.userId ?? null,
+    };
   }, [token]);
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

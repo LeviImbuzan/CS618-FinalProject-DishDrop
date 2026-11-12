@@ -3,10 +3,10 @@ import Post from './Post.jsx';
 
 export default function PostList({ posts = [] }) {
   if (posts.length === 0)
-    return <p>No posts yet. Create the first one above.</p>;
+    return <p>No recipes yet. Share the first one above.</p>;
 
   return (
-    <div className="post-list">
+    <div className="recipe-grid">
       {posts.map((post) => (
         <Post key={post._id} {...post} />
       ))}

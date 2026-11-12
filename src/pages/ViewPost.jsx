@@ -1,5 +1,5 @@
 // src/pages/ViewPost.jsx
-// One post on its own page, with its stats. Opening the page records a view.
+// One recipe on its own page, with its stats. Opening the page records a view.
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -8,10 +8,13 @@ import { trackEvent } from '../api/events.js';
 import Header from '../components/Header.jsx';
 import Post from '../components/Post.jsx';
 import PostStats from '../components/PostStats.jsx';
+import RecipeOwnerActions from '../components/RecipeOwnerActions.jsx';
+import { useAuth } from '../contexts/AuthContext.jsx';
 
 export default function ViewPost() {
   const { postId } = useParams();
   const queryClient = useQueryClient();
+  const { userId } = useAuth();
 
   // One random session ID per visit pairs this visit's start and end events
   const [session] = useState(() => crypto.randomUUID());
@@ -45,14 +48,17 @@ export default function ViewPost() {
     <main className="page">
       <Header />
       <p>
-        <Link to="/">← Back to all posts</Link>
+        <Link to="/">← Back to all recipes</Link>
       </p>
 
-      {postQuery.isLoading && <p>Loading post...</p>}
-      {postQuery.isError && <p className="error">Post not found.</p>}
+      {postQuery.isLoading && <p>Loading recipe...</p>}
+      {postQuery.isError && <p className="error">Recipe not found.</p>}
       {postQuery.isSuccess && (
         <>
           <Post {...postQuery.data} fullPost />
+          {userId && postQuery.data.author?._id === userId && (
+            <RecipeOwnerActions recipe={postQuery.data} />
+          )}
           <PostStats postId={postId} />
         </>
       )}

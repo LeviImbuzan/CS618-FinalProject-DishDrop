@@ -1,5 +1,5 @@
 // src/pages/Blog.jsx
-// The home page: the create form plus the live list of posts from the backend.
+// The home page: share a recipe, browse recipes, and chat.
 import { useQuery } from '@tanstack/react-query';
 import { getPosts } from '../api/posts.js';
 import ChatRoom from '../components/ChatRoom.jsx';
@@ -21,18 +21,18 @@ export default function Blog() {
     <main className="page">
       <Header />
 
-      {token && <ChatRoom />}
-
       <CreatePost />
 
       <section>
-        <h2>Latest posts</h2>
-        {postsQuery.isLoading && <p>Loading posts...</p>}
+        <h2>Latest recipes</h2>
+        {postsQuery.isLoading && <p>Loading recipes...</p>}
         {postsQuery.isError && (
           <p className="error">{postsQuery.error.message}</p>
         )}
         {postsQuery.isSuccess && <PostList posts={posts} />}
       </section>
+
+      {token && <ChatRoom />}
     </main>
   );
 }

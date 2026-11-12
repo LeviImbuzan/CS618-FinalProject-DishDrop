@@ -30,18 +30,21 @@ const samplePosts = () => [
   {
     author: alice._id,
     title: 'Node.js Basics',
+    ingredients: ['1 cup node'],
     content: 'Node content',
     tags: ['node.js', 'backend'],
   },
   {
     author: bob._id,
     title: 'React Intro',
+    ingredients: ['2 tbsp react'],
     content: 'React content',
     tags: ['react', 'frontend'],
   },
   {
     author: alice._id,
     title: 'MongoDB Guide',
+    ingredients: ['1 mongo'],
     content: 'Mongo content',
     tags: ['mongodb', 'database'],
   },
@@ -62,29 +65,66 @@ describe('createPost', () => {
   test('with all parameters, should succeed', async () => {
     const post = await createPost(alice._id, {
       title: 'Test Post',
+      ingredients: ['2 eggs', '1 cup flour'],
+      imageUrl: 'https://example.com/pancakes.jpg',
       content: 'Content here',
       tags: ['test'],
     });
     const found = await Post.findById(post._id);
     expect(found.title).toBe('Test Post');
+    expect([...found.ingredients]).toEqual(['2 eggs', '1 cup flour']);
+    expect(found.imageUrl).toBe('https://example.com/pancakes.jpg');
     expect(found.author.toString()).toBe(alice._id.toString());
     expect(found.createdAt).toBeInstanceOf(Date);
   });
 
   test('without title, should fail', async () => {
     await expect(
-      createPost(alice._id, { content: 'No title' })
+      createPost(alice._id, { ingredients: ['salt'] })
     ).rejects.toThrow(/title/i);
   });
 
   test('without an author, should fail', async () => {
-    await expect(createPost(undefined, { title: 'Orphan' })).rejects.toThrow(
-      /author/i
+    await expect(
+      createPost(undefined, { title: 'Orphan', ingredients: ['salt'] })
+    ).rejects.toThrow(/author/i);
+  });
+
+  test('without ingredients, should fail', async () => {
+    await expect(createPost(alice._id, { title: 'Air' })).rejects.toThrow(
+      /at least one ingredient/
     );
   });
 
+  test('with only blank ingredient lines, should fail', async () => {
+    await expect(
+      createPost(alice._id, { title: 'Air', ingredients: ['  ', ''] })
+    ).rejects.toThrow(/at least one ingredient/);
+  });
+
+  test('should drop blank ingredient lines', async () => {
+    const post = await createPost(alice._id, {
+      title: 'Toast',
+      ingredients: ['bread', '', '  butter  '],
+    });
+    expect([...post.ingredients]).toEqual(['bread', 'butter']);
+  });
+
+  test('with an image URL that is not http(s), should fail', async () => {
+    await expect(
+      createPost(alice._id, {
+        title: 'Toast',
+        ingredients: ['bread'],
+        imageUrl: 'javascript:alert(1)',
+      })
+    ).rejects.toThrow(/Image URL/);
+  });
+
   test('with minimal parameters, should succeed', async () => {
-    const post = await createPost(alice._id, { title: 'Minimal' });
+    const post = await createPost(alice._id, {
+      title: 'Minimal',
+      ingredients: ['salt'],
+    });
     expect(post._id).toBeInstanceOf(mongoose.Types.ObjectId);
   });
 });
@@ -138,6 +178,13 @@ describe('updatePost', () => {
     });
     expect(updated.title).toBe('Updated Title');
     expect(updated.content).toBe('Node content');
+  });
+
+  test('with an empty ingredient list, should fail', async () => {
+    const target = createdPosts[0];
+    await expect(
+      updatePost(alice._id, target._id, { ingredients: [] })
+    ).rejects.toThrow(/at least one ingredient/);
   });
 
   test('by another user, should change nothing', async () => {

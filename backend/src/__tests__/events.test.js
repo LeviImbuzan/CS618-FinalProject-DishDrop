@@ -22,7 +22,10 @@ beforeAll(async () => {
   await User.deleteMany({});
   await Post.deleteMany({});
   const user = await createUser({ username: 'chef', password: 'pass1234' });
-  post = await createPost(user._id, { title: 'Provoleta' });
+  post = await createPost(user._id, {
+    title: 'Provoleta',
+    ingredients: ['provolone'],
+  });
 });
 
 beforeEach(async () => {

@@ -51,8 +51,14 @@ export function postRoutes(app) {
   // POST /api/v1/posts — logged-in users only; author comes from the token
   app.post('/api/v1/posts', requireAuth, async (req, res) => {
     try {
-      const { title, content, tags } = req.body;
-      const post = await createPost(req.auth.userId, { title, content, tags });
+      const { title, ingredients, imageUrl, content, tags } = req.body;
+      const post = await createPost(req.auth.userId, {
+        title,
+        ingredients,
+        imageUrl,
+        content,
+        tags,
+      });
       res.status(201).json(post);
     } catch (err) {
       const status = err.name === 'ValidationError' ? 400 : 500;
@@ -66,16 +72,19 @@ export function postRoutes(app) {
       if (!isValidId(req.params.id)) {
         return res.status(404).json({ error: 'Post not found' });
       }
-      const { title, content, tags } = req.body;
+      const { title, ingredients, imageUrl, content, tags } = req.body;
       const updated = await updatePost(req.auth.userId, req.params.id, {
         title,
+        ingredients,
+        imageUrl,
         content,
         tags,
       });
       if (!updated) return res.status(404).json({ error: 'Post not found' });
       res.json(updated);
     } catch (err) {
-      res.status(500).json({ error: err.message });
+      const status = err.name === 'ValidationError' ? 400 : 500;
+      res.status(status).json({ error: err.message });
     }
   });
 

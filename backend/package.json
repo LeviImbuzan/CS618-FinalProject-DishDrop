@@ -9,7 +9,8 @@
     "test": "node --experimental-vm-modules node_modules/.bin/jest",
     "seed:views": "node src/seed-views.js",
     "clear:views": "node src/clear-views.js",
-    "clear:chat": "node src/clear-chat.js"
+    "clear:chat": "node src/clear-chat.js",
+    "clear:all": "node src/clear-all.js"
   },
   "keywords": [],
   "author": "",

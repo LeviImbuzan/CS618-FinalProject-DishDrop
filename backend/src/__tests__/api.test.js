@@ -34,13 +34,29 @@ describe('POST /api/v1/posts', () => {
     const res = await request(app)
       .post('/api/v1/posts')
       .set('Authorization', `Bearer ${token}`)
-      .send({ title: 'Provoleta', author: 'someone-else' });
+      .send({
+        title: 'Provoleta',
+        ingredients: ['provolone', 'oregano'],
+        imageUrl: 'https://example.com/provoleta.jpg',
+        author: 'someone-else',
+      });
     expect(res.status).toBe(201);
 
     const list = await request(app).get('/api/v1/posts');
     expect(list.body[0].title).toBe('Provoleta');
     // The author in the body was ignored; the token decided it
     expect(list.body[0].author.username).toBe('jane');
+    expect(list.body[0].ingredients).toEqual(['provolone', 'oregano']);
+  });
+
+  test('without ingredients, should return 400', async () => {
+    const token = await signupAndLogin();
+    const res = await request(app)
+      .post('/api/v1/posts')
+      .set('Authorization', `Bearer ${token}`)
+      .send({ title: 'Nothing in it' });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/at least one ingredient/);
   });
 });
 
