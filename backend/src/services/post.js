@@ -26,11 +26,46 @@ export async function createPost(
   return await post.save();
 }
 
+// Fields the recipe list can be sorted by
+export const SORT_FIELDS = {
+  createdAt: 'createdAt',
+  likes: 'likeCount',
+  title: 'title',
+};
+
 // --- Core list function — all filtering goes through here ---
-async function listPosts(query = {}, options = {}) {
-  const sort = options.sort || { createdAt: -1 }; // newest first by default
-  // populate swaps the author's ObjectId for { _id, username } in one query
-  return await Post.find(query).sort(sort).populate('author', 'username');
+// An aggregation pipeline, because sorting by like count needs a value
+// (the size of the likes array) that only exists once it is computed.
+async function listPosts(
+  query = {},
+  { sortBy = 'createdAt', sortOrder = 'desc' } = {}
+) {
+  const field = SORT_FIELDS[sortBy] ?? 'createdAt';
+  const direction = sortOrder === 'asc' ? 1 : -1;
+
+  return await Post.aggregate([
+    { $match: query },
+    // Count the likes on the database side
+    { $addFields: { likeCount: { $size: { $ifNull: ['$likes', []] } } } },
+    // Newest first breaks ties, e.g. between recipes with equal likes
+    {
+      $sort:
+        field === 'createdAt'
+          ? { createdAt: direction }
+          : { [field]: direction, createdAt: -1 },
+    },
+    // Swap the author's ID for { _id, username }, like populate does
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'author',
+        foreignField: '_id',
+        pipeline: [{ $project: { username: 1 } }],
+        as: 'author',
+      },
+    },
+    { $unwind: { path: '$author', preserveNullAndEmptyArrays: true } },
+  ]);
 }
 
 // --- Public list functions ---
@@ -75,6 +110,28 @@ export async function updatePost(
     // runValidators applies the schema rules to updates too
     { returnDocument: 'after', runValidators: true }
   );
+}
+
+// --- Like and unlike ---
+// $addToSet adds the user only if they aren't already in the array, so
+// liking twice still counts once. $pull removes them.
+async function setLike(userId, postId, liked) {
+  const update = liked
+    ? { $addToSet: { likes: userId } }
+    : { $pull: { likes: userId } };
+  const post = await Post.findByIdAndUpdate(postId, update, {
+    returnDocument: 'after',
+  });
+  if (!post) return null;
+  return { likeCount: post.likeCount, liked };
+}
+
+export function likePost(userId, postId) {
+  return setLike(userId, postId, true);
+}
+
+export function unlikePost(userId, postId) {
+  return setLike(userId, postId, false);
 }
 
 // --- Delete ---

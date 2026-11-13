@@ -10,6 +10,8 @@ import {
   getPostById,
   updatePost,
   deletePost,
+  likePost,
+  unlikePost,
 } from '../services/post.js';
 
 // A malformed id would make Mongoose throw a CastError, so reject it as a 404
@@ -17,16 +19,18 @@ const isValidId = (id) => mongoose.Types.ObjectId.isValid(id);
 
 export function postRoutes(app) {
   // GET /api/v1/posts — public, with optional ?author= or ?tag= filtering
+  // and ?sortBy=createdAt|likes|title&sortOrder=asc|desc
   app.get('/api/v1/posts', async (req, res) => {
     try {
-      const { author, tag } = req.query;
+      const { author, tag, sortBy, sortOrder } = req.query;
+      const options = { sortBy, sortOrder };
       let posts;
       if (author) {
-        posts = await getPostsByAuthor(author);
+        posts = await getPostsByAuthor(author, options);
       } else if (tag) {
-        posts = await getPostsByTag(tag);
+        posts = await getPostsByTag(tag, options);
       } else {
-        posts = await getAllPosts();
+        posts = await getAllPosts(options);
       }
       res.json(posts);
     } catch (err) {
@@ -87,6 +91,26 @@ export function postRoutes(app) {
       res.status(status).json({ error: err.message });
     }
   });
+
+  // POST /api/v1/posts/:id/like — logged-in users like a recipe
+  // DELETE /api/v1/posts/:id/like — and take the like back
+  for (const [method, action] of [
+    ['post', likePost],
+    ['delete', unlikePost],
+  ]) {
+    app[method]('/api/v1/posts/:id/like', requireAuth, async (req, res) => {
+      try {
+        if (!isValidId(req.params.id)) {
+          return res.status(404).json({ error: 'Post not found' });
+        }
+        const result = await action(req.auth.userId, req.params.id);
+        if (!result) return res.status(404).json({ error: 'Post not found' });
+        res.json(result);
+      } catch (err) {
+        res.status(500).json({ error: err.message });
+      }
+    });
+  }
 
   // DELETE /api/v1/posts/:id — only the post's author can delete it
   app.delete('/api/v1/posts/:id', requireAuth, async (req, res) => {

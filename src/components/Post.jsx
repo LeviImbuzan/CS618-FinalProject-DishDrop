@@ -2,18 +2,22 @@
 // One recipe: a compact card in the list, or the full recipe on its own page.
 // author arrives populated from the backend as { _id, username }
 import { Link } from 'react-router-dom';
+import LikeButton from './LikeButton.jsx';
 import RecipeImage from './RecipeImage.jsx';
 
-export default function Post({
-  _id,
-  title,
-  author,
-  ingredients = [],
-  imageUrl,
-  content,
-  createdAt,
-  fullPost = false,
-}) {
+export default function Post(recipe) {
+  const {
+    _id,
+    title,
+    author,
+    ingredients = [],
+    imageUrl,
+    content,
+    createdAt,
+    likeCount = 0,
+    fullPost = false,
+  } = recipe;
+
   const byline = (
     <p className="meta">
       by {author?.username ?? 'unknown'}
@@ -36,7 +40,12 @@ export default function Post({
             {ingredients.length > 0 &&
               `: ${ingredients.slice(0, 3).join(', ')}${ingredients.length > 3 ? ', ...' : ''}`}
           </p>
-          {byline}
+          <div className="card-footer">
+            {byline}
+            <span className="like-badge" title="Likes">
+              ♥ {likeCount}
+            </span>
+          </div>
         </div>
       </article>
     );
@@ -47,6 +56,7 @@ export default function Post({
       <RecipeImage src={imageUrl} alt={title} className="hero" />
       <h2>{title}</h2>
       {byline}
+      <LikeButton recipe={recipe} />
       <h3>Ingredients</h3>
       <ul className="ingredients">
         {ingredients.map((item, i) => (

@@ -33,10 +33,21 @@ const postSchema = new mongoose.Schema(
     // Preparation steps
     content: { type: String },
     tags: [String],
+    // Likes: the IDs of the users who liked this recipe. Storing user IDs
+    // (not a counter) means each user can like a recipe only once, and the
+    // like count is simply the array's length.
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
   },
   {
     timestamps: true, // auto-manages createdAt and updatedAt
+    // Include virtual fields such as likeCount in API responses
+    toJSON: { virtuals: true },
   }
 );
+
+// Computed on read, never stored, so it can't drift out of sync with likes
+postSchema.virtual('likeCount').get(function () {
+  return this.likes?.length ?? 0;
+});
 
 export const Post = mongoose.model('Post', postSchema);

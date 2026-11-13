@@ -340,3 +340,59 @@ button.danger {
 .form-actions button {
   margin-top: 0;
 }
+
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.sort-control {
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.sort-control select {
+  font: inherit;
+  font-weight: 400;
+  margin-left: 6px;
+  padding: 6px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--card);
+  color: var(--text);
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.like-badge {
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+}
+
+.like-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.like-row button {
+  margin-top: 0;
+}
+
+.like-count {
+  font-weight: 700;
+  color: var(--accent);
+}
+
+button.liked {
+  background: var(--accent);
+}

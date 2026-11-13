@@ -2,8 +2,12 @@
 // All HTTP calls for recipes live here, so components never build URLs themselves.
 import { baseUrl, readError } from './config.js';
 
-export async function getPosts() {
-  const response = await fetch(`${baseUrl}/posts`);
+// sortBy: createdAt | likes | title, sortOrder: asc | desc
+export async function getPosts({ sortBy, sortOrder } = {}) {
+  const params = new URLSearchParams();
+  if (sortBy) params.set('sortBy', sortBy);
+  if (sortOrder) params.set('sortOrder', sortOrder);
+  const response = await fetch(`${baseUrl}/posts?${params}`);
   if (!response.ok) throw await readError(response, 'Failed to load recipes');
   return await response.json();
 }
@@ -46,4 +50,14 @@ export async function deletePost({ token, postId }) {
     headers: authHeaders(token),
   });
   if (!response.ok) throw await readError(response, 'Failed to delete recipe');
+}
+
+// Like or unlike; resolves to { likeCount, liked }
+export async function setLike({ token, postId, liked }) {
+  const response = await fetch(`${baseUrl}/posts/${postId}/like`, {
+    method: liked ? 'POST' : 'DELETE',
+    headers: authHeaders(token),
+  });
+  if (!response.ok) throw await readError(response, 'Failed to update like');
+  return await response.json();
 }

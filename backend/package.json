@@ -10,7 +10,8 @@
     "seed:views": "node src/seed-views.js",
     "clear:views": "node src/clear-views.js",
     "clear:chat": "node src/clear-chat.js",
-    "clear:all": "node src/clear-all.js"
+    "clear:all": "node src/clear-all.js",
+    "seed:recipes": "node src/seed-recipes.js"
   },
   "keywords": [],
   "author": "",
