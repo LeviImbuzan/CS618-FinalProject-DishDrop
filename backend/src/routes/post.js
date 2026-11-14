@@ -2,6 +2,7 @@
 
 import mongoose from 'mongoose';
 import { requireAuth } from '../middleware/jwt.js';
+import { broadcastNewRecipe } from '../socket.js';
 import {
   createPost,
   getAllPosts,
@@ -64,6 +65,8 @@ export function postRoutes(app) {
         tags,
       });
       res.status(201).json(post);
+      // Tell everyone else in real time
+      broadcastNewRecipe(req.app.get('io'), post, req.auth.username);
     } catch (err) {
       const status = err.name === 'ValidationError' ? 400 : 500;
       res.status(status).json({ error: err.message });

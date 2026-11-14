@@ -11,5 +11,7 @@ export function createServer() {
   const httpServer = createHttpServer(app);
   const io = new Server(httpServer, { cors: { origin: '*' } });
   handleSocket(io);
+  // Lets routes reach the socket server through req.app.get('io')
+  app.set('io', io);
   return { httpServer, io };
 }

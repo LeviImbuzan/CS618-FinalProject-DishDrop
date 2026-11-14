@@ -396,3 +396,74 @@ button.danger {
 button.liked {
   background: var(--accent);
 }
+
+.popup-stack {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 1000;
+  max-width: calc(100vw - 40px);
+}
+
+.popup {
+  position: relative;
+  width: 320px;
+  max-width: 100%;
+  background: var(--card);
+  border: 1px solid var(--accent);
+  border-left: 6px solid var(--accent);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.25);
+  animation: popup-in 0.25s ease-out;
+}
+
+.popup-link {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 14px 40px 14px 16px;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.popup-link:hover strong {
+  text-decoration: underline;
+}
+
+.popup-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--accent);
+}
+
+.popup-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+.popup-close {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  margin: 0;
+  padding: 2px 8px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 1.2rem;
+}
+
+@keyframes popup-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,5 +1,6 @@
 // backend/src/socket.js
-// Real-time chat over Socket.io. Every connection must carry a valid JWT.
+// Real-time features over Socket.io: the chat, and new-recipe notifications.
+// Every connection must carry a valid JWT.
 
 import jwt from 'jsonwebtoken';
 import { createMessage, getRecentMessages } from './services/messages.js';
@@ -14,6 +15,22 @@ const toClient = (msg) => ({
   content: msg.content,
   sentAt: msg.createdAt,
 });
+
+// Each user's sockets join a private room named after their user ID, so a
+// broadcast can skip one user across all their open tabs
+const userRoom = (userId) => `user:${userId}`;
+
+// --- New recipe notification ---
+// Called by the create-recipe route after the recipe is saved. Broadcasts to
+// every connected user except the author, who already knows.
+export function broadcastNewRecipe(io, recipe, authorUsername) {
+  if (!io) return; // no socket server, e.g. in route tests
+  io.except(userRoom(recipe.author.toString())).emit('recipe:new', {
+    id: recipe._id.toString(),
+    title: recipe.title,
+    author: authorUsername,
+  });
+}
 
 export function handleSocket(io) {
   // Socket.io middleware runs before a connection is accepted, like
@@ -31,8 +48,9 @@ export function handleSocket(io) {
   });
 
   io.on('connection', async (socket) => {
-    const { username } = socket.data.user;
+    const { username, userId } = socket.data.user;
     socket.join(ROOM);
+    socket.join(userRoom(userId));
 
     // Send the recent history to this socket only
     try {
