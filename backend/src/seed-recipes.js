@@ -1,11 +1,13 @@
 // backend/src/seed-recipes.js
 // Adds three background recipes with 0, 1 and 2 likes, so sorting by likes
-// has something to show. Run from the backend folder:
+// has something to show. Safe to run more than once: it replaces its own
+// recipes instead of adding duplicates. Run from the backend folder:
 //   npm run seed:recipes
 
 import 'dotenv/config';
 import mongoose from 'mongoose';
 import { initDatabase } from './database/init.js';
+import { Post } from './models/post.js';
 import { User } from './models/user.js';
 import { createUser } from './services/users.js';
 import { createPost, likePost } from './services/post.js';
@@ -13,6 +15,8 @@ import { createPost, likePost } from './services/post.js';
 const RECIPES = [
   {
     title: 'Alfajores de maicena',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/6/6a/Alfajores-de-maicena-biscuits-recipe.jpg',
     ingredients: [
       '2 cups cornstarch',
       '1 cup flour',
@@ -24,7 +28,9 @@ const RECIPES = [
     likers: [],
   },
   {
-    title: 'Empanadas salteñas',
+    title: 'Empanadas cordobesas',
+    imageUrl:
+      'https://upload.wikimedia.org/wikipedia/commons/1/1d/Empanadas_cordobesas_%28Argentina%29_caseras.JPG',
     ingredients: [
       '12 empanada discs',
       '1 lb ground beef',
@@ -67,6 +73,10 @@ const fans = {
   seed_jorge: await seedUser('seed_jorge'),
   seed_carla: await seedUser('seed_carla'),
 };
+
+// Remove this script's earlier recipes so reruns never duplicate them
+const { deletedCount } = await Post.deleteMany({ author: author._id });
+if (deletedCount) console.log(`Replaced ${deletedCount} earlier seed recipes`);
 
 for (const { likers, ...recipe } of RECIPES) {
   const post = await createPost(author._id, recipe);
