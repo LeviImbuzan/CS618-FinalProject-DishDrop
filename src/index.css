@@ -400,7 +400,7 @@ button.liked {
 .popup-stack {
   position: fixed;
   right: 20px;
-  bottom: 20px;
+  top: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -460,7 +460,7 @@ button.liked {
 @keyframes popup-in {
   from {
     opacity: 0;
-    transform: translateY(12px);
+    transform: translateY(-12px);
   }
   to {
     opacity: 1;
